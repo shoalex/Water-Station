@@ -9,16 +9,11 @@ t.join()
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
-
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen()
-    conn, addr = s.accept()
+clients = []
+def threadFunc(conn):
     with conn:
-        print('Connected by', addr)
         while True:
             data = conn.recv(1024)
-
             recived=data.decode().split(",")
             if len(recived)==3:
                 t = threading.Thread(target=db.insert(recived[0],recived[1],recived[2]))
@@ -26,6 +21,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 t.join()
 
             if not data:
+                clients.remove(conn)
                 break
             print("Data received from client: ",data.decode())
             conn.sendall(data)
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
+    while True:
+        conn, addr = s.accept()
+        print('Connected by', addr)
+        clients.append(conn)
+        t = threading.Thread(target=threadFunc, args=(conn,))
+        t.start()

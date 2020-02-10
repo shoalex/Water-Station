@@ -35,7 +35,7 @@ class dbconnect:
             #sql = "INSERT INTO station_status VALUES ({},\"{}\",{},{})".format(id, str(datetime.now()), alarm1, alarm2)
             #print(sql)
             cur.execute(
-                "INSERT INTO station_status VALUES ({},\"{}\",{},{})".format(id, str(datetime.now()), alarm1, alarm2))
+                "INSERT INTO station_status VALUES (?,?,?,?)",(id, str(datetime.now()), alarm1, alarm2,))
             conn.commit()
             conn.close()
 
@@ -44,13 +44,13 @@ class dbconnect:
         cur = conn.cursor()
         #sql="update station_status set last_date=\"{}\" , alarm1={},alarm2={} where station_id={}".format(str(datetime.now()),alarm1,alarm2,id)
         #print(sql)
-        cur.execute("update station_status set last_date=\"{}\" , alarm1={},alarm2={} where station_id={}".format(str(datetime.now()),alarm1,alarm2,id))
+        cur.execute("update station_status set last_date=? , alarm1=?,alarm2=? where station_id=?",(str(datetime.now()),alarm1,alarm2,id,))
         conn.commit()
         conn.close()
 
     def select(self,id,myqueue):
             conn = sqlite3.connect(self.dbname)
-            cursor = conn.execute("SELECT * FROM 'station_status' where station_id={}".format(id,))
+            cursor = conn.execute("SELECT * FROM 'station_status' where station_id=?",(id,))
             queue.Queue.put(myqueue,cursor.fetchall())
             conn.close()
 
